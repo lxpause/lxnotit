@@ -125,6 +125,5 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Custom config file
-custom_setup*
-/data
+# custom
+lxnotit/data
