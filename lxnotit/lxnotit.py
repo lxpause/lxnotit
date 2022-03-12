@@ -69,6 +69,95 @@ class MainWindow(QMainWindow, UiMainWindow):
 
         self.displaynote(None)
 
+    def checkinstall(self):
+        """ Check if existing install """
+        if CHECKINSTALL:
+            pass
+        else:
+            dgbox = QMessageBox()
+            dgbox.setIcon(QMessageBox.Warning)
+            dgbox.setText('''
+                No config detected. Proceed to create new install ? 
+                \n If no install proceed, you can't save your notes.''')
+            dgbox.setWindowTitle("Install config")
+            dgbox.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+            returnbox = dgbox.exec()
+            if returnbox == QMessageBox.Ok:
+                configfile = DATADIR + '/custom_setup.cfg'
+                listfiles = []
+                for i in range(1,3):
+                    notefileadd = DATADIR + '/note'+str(i)+'.out'
+                    listfiles.append(notefileadd)
+                if not os.path.isdir(DATADIR):
+                    try:
+                        os.makedirs(DATADIR)
+                        Path(configfile).touch()
+                    except IOError as error:
+                        print(error)
+                try:
+                    for files in listfiles:
+                        Path(str(files)).touch()
+                    print("end copy files")
+                except IOError as error:
+                    print(error)
+                self.createconfig()
+
+    def createconfig(self):
+        """ Create custom config """
+        customdict = {}
+        customdict['tabname'] = {}
+        i=1
+        for i in range(1,3):
+            customnote = "note"+str(i)
+            customdict['tabname'][customnote] = {}
+            customdict['tabname'][customnote]["name"] = customnote
+            customdict['tabname'][customnote]["data"] = DATADIR+customnote+'.out'
+        with open(CUSTOM_FILE,"w",encoding="utf-8") as cfile:
+            cfile.write(json.dumps(customdict))
+        self.displaynote(True)
+
+    def diagbox(self,args):
+        """ Dailog box """
+        dgbox = QMessageBox()
+        dgbox.setIcon(QMessageBox.Warning)
+        dgbox.setText("Do you really want delete " + args.upper() + " and all data ?")
+        dgbox.setWindowTitle("Delete note")
+        dgbox.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+        self.returnvalue = dgbox.exec()
+
+    @classmethod
+    def fileabout(cls):
+        """ Read about file - install also with setup on python lib"""
+        aboutfile = str(LIBDIRPARENT) + '/static/about.cfg'
+        existfile = os.path.isfile(aboutfile)
+        if existfile:
+            aboutdir = str(LIBDIRPARENT) + '/static/about.cfg'
+        else:
+            aboutdir = 'static/about.cfg'
+        with open(aboutdir,'r',encoding="utf-8") as file:
+            return file.read()
+
+    def aboutapp(self):
+        """ About popup """
+        aboutmsg = QMessageBox()
+        aboutmsg.setWindowTitle("About")
+        aboutmsg.setInformativeText(self.fileabout())
+        aboutmsg.setStandardButtons(QMessageBox.Close)
+        aboutmsg.exec_()
+        
+    def savefile(self):
+        """ Autosave note to data """
+        currenttab = self.tabwidget.currentWidget().objectName()
+        with open(CUSTOM_FILE,"r",encoding="utf-8") as fdict:
+            mydict = ast.literal_eval(fdict.read())
+            datadict = mydict['tabname'][currenttab]['data']
+        with open(datadict,'w',encoding="utf-8") as datafile:
+            try:
+                datafile.write(self.textedit.toPlainText())
+                self.textedit_console.setText('save file successfully for note: '+ currenttab)
+            except IOError as error:
+                self.textedit_console.setText('error on save to file...' + error)
+
     def addnote(self):
         """ Add new note and associate tab """
         i = 0
@@ -131,10 +220,6 @@ class MainWindow(QMainWindow, UiMainWindow):
         self.tabwidget.addTab(self.tab_value, "")
         self.tabwidget.setTabText(self.tabwidget.indexOf(self.tab_value),
             QCoreApplication.translate("MainWindow", newname, None))
-
-    # def detecttab(self):
-    #     """ Detect current tab """
-    #     currenttab = self.tabWidget.currentWidget().objectName()
 
     def displaynote(self,args):
         """ Display data of note """
@@ -214,53 +299,11 @@ class MainWindow(QMainWindow, UiMainWindow):
                     self.textedit_console.setStyleSheet("QTextEdit {color:red}")
                     self.textedit_console.setText(err.args[0])
 
-    @classmethod
-    def fileabout(cls):
-        """ Read about file - install also with setup on python lib"""
-        aboutfile = str(LIBDIRPARENT) + '/static/about.cfg'
-        existfile = os.path.isfile(aboutfile)
-        if existfile:
-            aboutdir = str(LIBDIRPARENT) + '/static/about.cfg'
-        else:
-            aboutdir = 'static/about.cfg'
-        with open(aboutdir,'r',encoding="utf-8") as file:
-            return file.read()
-
-    def aboutapp(self):
-        """ About popup """
-        aboutmsg = QMessageBox()
-        aboutmsg.setWindowTitle("About")
-        aboutmsg.setInformativeText(self.fileabout())
-        aboutmsg.setStandardButtons(QMessageBox.Close)
-        aboutmsg.exec_()
-
-    def savefile(self):
-        """ Autosave note to data """
-        currenttab = self.tabwidget.currentWidget().objectName()
-        with open(CUSTOM_FILE,"r",encoding="utf-8") as fdict:
-            mydict = ast.literal_eval(fdict.read())
-            datadict = mydict['tabname'][currenttab]['data']
-        with open(datadict,'w',encoding="utf-8") as datafile:
-            try:
-                datafile.write(self.textedit.toPlainText())
-                self.textedit_console.setText('save file successfully for note: '+ currenttab)
-            except IOError as error:
-                self.textedit_console.setText('error on save to file...' + error)
-
     def closenote(self):
         """ Close note after click on tab """
         currentindextab = self.tabwidget.currentIndex()
         self.textedit_console.setText('You are close the index:'+str(currentindextab))
         self.tabwidget.removeTab(currentindextab)
-
-    def diagbox(self,args):
-        """ Dailog box """
-        dgbox = QMessageBox()
-        dgbox.setIcon(QMessageBox.Warning)
-        dgbox.setText("Do you really want delete " + args.upper() + " and all data ?")
-        dgbox.setWindowTitle("Delete note")
-        dgbox.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-        self.returnvalue = dgbox.exec()
 
     def deletenote(self):
         """ Delete note and data files """
@@ -280,52 +323,6 @@ class MainWindow(QMainWindow, UiMainWindow):
         self.textedit_console.setText('Delete note successfully')
         currentindextab = self.tabwidget.currentIndex()
         self.tabwidget.removeTab(currentindextab)
-
-    def createconfig(self):
-        """ Create custom config """
-        customdict = {}
-        customdict['tabname'] = {}
-        i=1
-        for i in range(1,3):
-            customnote = "note"+str(i)
-            customdict['tabname'][customnote] = {}
-            customdict['tabname'][customnote]["name"] = customnote
-            customdict['tabname'][customnote]["data"] = DATADIR+customnote+'.out'
-        with open(CUSTOM_FILE,"w",encoding="utf-8") as cfile:
-            cfile.write(json.dumps(customdict))
-        self.displaynote(True)
-
-    def checkinstall(self):
-        """ Check if existing install """
-        if CHECKINSTALL:
-            pass
-        else:
-            dgbox = QMessageBox()
-            dgbox.setIcon(QMessageBox.Warning)
-            dgbox.setText('''
-                No config detected. Proceed to create new install ? 
-                \n If no install proceed, you can't save your notes.''')
-            dgbox.setWindowTitle("Install config")
-            dgbox.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-            returnbox = dgbox.exec()
-            if returnbox == QMessageBox.Ok:
-                configfile = str(LIBDIRPARENT)+'/static/custom_setup.cfg'
-                listfiles = [configfile]
-                for i in range(1,3):
-                    notefileadd = str(LIBDIRPARENT)+'/static/note'+str(i)+'.out'
-                    listfiles.append(notefileadd)
-                if not os.path.isdir(DATADIR):
-                    try:
-                        os.makedirs(DATADIR)
-                    except IOError as error:
-                        print(error)
-                try:
-                    for files in listfiles:
-                        copy(str(files), str(DATADIR))
-                    print("end copy files")
-                except IOError as error:
-                    print(error)
-                self.createconfig()
 
     @classmethod
     def main(cls):
