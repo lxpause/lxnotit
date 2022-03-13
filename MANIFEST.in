@@ -1,4 +1,4 @@
-recursive-include static *.cfg
+recursive-include static *.cfg *.png
 
 prune build
 exclude __pycache__

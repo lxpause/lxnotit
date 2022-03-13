@@ -193,9 +193,10 @@ class UiMainWindow():
 
     def retranslate_ui(self, mainwindow):
         """ Retranslate """
-        mainwindow.setWindowTitle(QCoreApplication.translate("mainwindow", "mainwindow",
+        mainwindow.setWindowTitle(QCoreApplication.translate("mainwindow", "lxnotit",
             None))
-        self.label.setText(QCoreApplication.translate("mainwindow", "TextLabel",
+        self.label.setText(QCoreApplication.translate("mainwindow",
+            "take and save your notes",
             None))
         self.pushbuttonnewnote.setText(QCoreApplication.translate("mainwindow", "Add note",
             None))

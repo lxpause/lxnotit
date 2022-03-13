@@ -13,7 +13,8 @@ from pathlib import Path
 from PySide2.QtCore import ( QCoreApplication )
 from PySide2.QtWidgets import ( QApplication, QMainWindow, QFileDialog,
 QAction, QMessageBox, QInputDialog, QWidget )
-from lxnotit.lxnotitui import UiMainWindow
+from PySide2.QtGui import QIcon
+from lxnotitui import UiMainWindow
 
 HOMEDIR = os.path.expanduser('~')
 DATADIR = HOMEDIR+'/.lxnotit/data/'
@@ -26,6 +27,7 @@ class MainWindow(QMainWindow, UiMainWindow):
     """ Main Class """
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setWindowIcon(QIcon(str(LIBDIRPARENT)+'/static/logo.png'))
         self.tab_value = None
         self.returnvalue = None
 
@@ -144,7 +146,7 @@ class MainWindow(QMainWindow, UiMainWindow):
         aboutmsg.setInformativeText(self.fileabout())
         aboutmsg.setStandardButtons(QMessageBox.Close)
         aboutmsg.exec_()
-        
+
     def savefile(self):
         """ Autosave note to data """
         currenttab = self.tabwidget.currentWidget().objectName()
