@@ -162,66 +162,74 @@ class MainWindow(QMainWindow, UiMainWindow):
 
     def addnote(self):
         """ Add new note and associate tab """
-        i = 0
-        with open(CUSTOM_FILE,"r",encoding="utf-8") as fdict:
-            mydict = ast.literal_eval(fdict.read())
-        for i in range(1,99):
-            notename = "note" + str(i)
-            if notename in mydict['tabname'].keys():
-                i+=1
-            else:
-                self.tab_value = QWidget()
-                self.tabwidget.insertTab(0,self.tab_value, notename)
-                # switch to new tab after create
-                self.tabwidget.setCurrentIndex(0)
-                self.tab_value.setObjectName(notename)
-                self.tabwidget.setTabText(self.tabwidget.indexOf(self.tab_value),
-                 QCoreApplication.translate("MainWindow", notename, None))
-                try:
-                    mydict['tabname'][notename] = {}
-                    mydict['tabname'][notename]['name'] = notename
-                    mydict['tabname'][notename]['data'] = DATADIR+notename+'.out'
-                    with open(CUSTOM_FILE,"w",encoding="utf-8") as fdict:
-                        try:
-                            fdict.write(json.dumps(mydict))
-                            with open(DATADIR+notename+'.out','a',encoding="utf-8"):
-                                pass
-                        except IOError as error:
-                            print(error)
-                    with open(DATADIR+notename+'.out','r',encoding="utf-8") as newfile:
-                        self.textedit.setText(newfile.read())
-                except TypeError:
-                    self.textedit_console.setText('Error on rename note')
-                break
+        if not CHECKINSTALL:
+            self.textedit_console.setStyleSheet("QTextEdit {color:red}")
+            self.textedit_console.setText('You must create a config for this action')
+        else:
+            i = 0
+            with open(CUSTOM_FILE,"r",encoding="utf-8") as fdict:
+                mydict = ast.literal_eval(fdict.read())
+            for i in range(1,99):
+                notename = "note" + str(i)
+                if notename in mydict['tabname'].keys():
+                    i+=1
+                else:
+                    self.tab_value = QWidget()
+                    self.tabwidget.insertTab(0,self.tab_value, notename)
+                    # switch to new tab after create
+                    self.tabwidget.setCurrentIndex(0)
+                    self.tab_value.setObjectName(notename)
+                    self.tabwidget.setTabText(self.tabwidget.indexOf(self.tab_value),
+                     QCoreApplication.translate("MainWindow", notename, None))
+                    try:
+                        mydict['tabname'][notename] = {}
+                        mydict['tabname'][notename]['name'] = notename
+                        mydict['tabname'][notename]['data'] = DATADIR+notename+'.out'
+                        with open(CUSTOM_FILE,"w",encoding="utf-8") as fdict:
+                            try:
+                                fdict.write(json.dumps(mydict))
+                                with open(DATADIR+notename+'.out','a',encoding="utf-8"):
+                                    pass
+                            except IOError as error:
+                                print(error)
+                        with open(DATADIR+notename+'.out','r',encoding="utf-8") as newfile:
+                            self.textedit.setText(newfile.read())
+                    except TypeError:
+                        self.textedit_console.setText('Error on rename note')
+                    break
 
 
     def renamenote(self):
         """ Rename actual note """
-        currenttab = self.tabwidget.currentWidget().objectName()
-        newname, answer = QInputDialog.getText(self, 'input dialog',
-            'Insert new name of note '+currenttab)
-        if answer:
-            with open(CUSTOM_FILE,"r",encoding="utf-8") as fdict:
-                mydict = json.loads(fdict.read())
-                olddir = mydict['tabname'][currenttab]['data']
-            with open(CUSTOM_FILE,"w",encoding="utf-8") as fdict:
-                mydict['tabname'][newname] = mydict['tabname'].pop(currenttab)
-                mydict['tabname'][newname]['name'] = newname
-                mydict['tabname'][newname]['data'] = DATADIR+newname+'.out'
-                try:
-                    fdict.write(json.dumps(mydict))
-                    os.rename(olddir,DATADIR+newname+'.out')
-                except IOError:
-                    self.textedit_console.setText('Error on rename note')
-        self.textedit_console.setText('Change title: '+currenttab + 'to: '+newname)
-        currentindextab = self.tabwidget.currentIndex()
-        self.textedit_console.setText('you are close the index:'+str(currentindextab))
-        self.tabwidget.removeTab(currentindextab)
-        self.tab_value = QWidget()
-        self.tab_value.setObjectName(newname)
-        self.tabwidget.addTab(self.tab_value, "")
-        self.tabwidget.setTabText(self.tabwidget.indexOf(self.tab_value),
-            QCoreApplication.translate("MainWindow", newname, None))
+        if not CHECKINSTALL:
+            self.textedit_console.setStyleSheet("QTextEdit {color:red}")
+            self.textedit_console.setText('You must create a config for this action')
+        else:
+            currenttab = self.tabwidget.currentWidget().objectName()
+            newname, answer = QInputDialog.getText(self, 'input dialog',
+                'Insert new name of note '+currenttab)
+            if answer:
+                with open(CUSTOM_FILE,"r",encoding="utf-8") as fdict:
+                    mydict = json.loads(fdict.read())
+                    olddir = mydict['tabname'][currenttab]['data']
+                with open(CUSTOM_FILE,"w",encoding="utf-8") as fdict:
+                    mydict['tabname'][newname] = mydict['tabname'].pop(currenttab)
+                    mydict['tabname'][newname]['name'] = newname
+                    mydict['tabname'][newname]['data'] = DATADIR+newname+'.out'
+                    try:
+                        fdict.write(json.dumps(mydict))
+                        os.rename(olddir,DATADIR+newname+'.out')
+                    except IOError:
+                        self.textedit_console.setText('Error on rename note')
+            self.textedit_console.setText('Change title: '+currenttab + 'to: '+newname)
+            currentindextab = self.tabwidget.currentIndex()
+            self.textedit_console.setText('you are close the index:'+str(currentindextab))
+            self.tabwidget.removeTab(currentindextab)
+            self.tab_value = QWidget()
+            self.tab_value.setObjectName(newname)
+            self.tabwidget.addTab(self.tab_value, "")
+            self.tabwidget.setTabText(self.tabwidget.indexOf(self.tab_value),
+                QCoreApplication.translate("MainWindow", newname, None))
 
     def displaynote(self,args):
         """ Display data of note """
@@ -322,9 +330,9 @@ class MainWindow(QMainWindow, UiMainWindow):
                     os.remove(olddir)
                 except IOError:
                     self.textedit_console.setText('Error on delete note')
-        self.textedit_console.setText('Delete note successfully')
-        currentindextab = self.tabwidget.currentIndex()
-        self.tabwidget.removeTab(currentindextab)
+            self.textedit_console.setText('Delete note successfully')
+            currentindextab = self.tabwidget.currentIndex()
+            self.tabwidget.removeTab(currentindextab)
 
     @classmethod
     def main(cls):
